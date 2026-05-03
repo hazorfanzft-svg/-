@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>ShChat • коркарди штчат</title>
+  <!-- Google Fonts для футуристического стиля -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;600;700;800;900&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --bg-deep: #03050f;
+      --bg-card: rgba(10, 15, 35, 0.7);
+      --neon-cyan: #00f0ff;
+      --neon-magenta: #e040fb;
+      --neon-green: #39ff14;
+      --neon-gold: #ffd740;
+      --text-primary: #e8ecf4;
+      --text-secondary: #a0b4cf;
+      --glass-border: rgba(0, 240, 255, 0.25);
+      --glass-bg: rgba(8, 20, 40, 0.55);
+      --glow-cyan: 0 0 18px rgba(0, 240, 255, 0.7);
+      --glow-magenta: 0 0 18px rgba(224, 64, 251, 0.7);
+      --glow-green: 0 0 14px rgba(57, 255, 20, 0.6);
+      --radius-lg: 28px;
+      --radius-md: 18px;
+      --radius-sm: 12px;
+      --transition: 0.3s cubic-bezier(0.23, 1, 0.32, 1);
+    }
+
+    body {
+      background: var(--bg-deep);
+      font-family: 'Inter', sans-serif;
+      color: var(--text-primary);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow-x: hidden;
+      position: relative;
+    }
+
+    /* Анимированный фон — частицы (canvas) */
+    #particles-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* Основной контейнер */
+    .app-container {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 520px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Карточки-экраны */
+    .screen {
+      width: 100%;
+      background: var(--glass-bg);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
+      border: 1px solid var(--glass-border);
+      border-radius: var(--radius-lg);
+      padding: 30px 26px;
+      box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6), inset 0 0 40px rgba(0, 240, 255, 0.05);
+      transition: all var(--transition);
+      animation: fadeSlideIn 0.5s ease-out;
+    }
+
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(30px);
+        filter: blur(8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+        filter: blur(0);
+      }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% {
+        box-shadow: 0 0 20px rgba(0, 240, 255, 0.5), 0 0 60px rgba(224, 64, 251, 0.2);
+      }
+      50% {
+        box-shadow: 0 0 35px rgba(0, 240, 255, 0.8), 0 0 80px rgba(224, 64, 251, 0.35);
+      }
+    }
+
+    .screen.hidden {
+      display: none;
+    }
+
+    /* Типографика */
+    h1, h2, h3 {
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 700;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    .neon-text-cyan {
+      color: var(--neon-cyan);
+      text-shadow: 0 0 12px rgba(0, 240, 255, 0.8), 0 0 35px rgba(0, 240, 255, 0.4);
+    }
+
+    .neon-text-magenta {
+      color: var(--neon-magenta);
+      text-shadow: 0 0 12px rgba(224, 64, 251, 0.8), 0 0 35px rgba(224, 64, 251, 0.4);
+    }
+
+    .neon-text-green {
+      color: var(--neon-green);
+      text-shadow: 0 0 10px rgba(57, 255, 20, 0.7), 0 0 30px rgba(57, 255, 20, 0.3);
+    }
+
+    .title-xl {
+      font-size: 2.6rem;
+      font-weight: 900;
+      text-align: center;
+      margin-bottom: 10px;
+    }
+
+    .title-lg {
+      font-size: 1.8rem;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      text-align: center;
+      margin-bottom: 20px;
+      letter-spacing: 0.02em;
+    }
+
+    /* Кнопки */
+    .btn {
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.15), rgba(224, 64, 251, 0.1));
+      border: 1px solid var(--glass-border);
+      color: var(--neon-cyan);
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 600;
+      font-size: 1rem;
+      padding: 14px 28px;
+      border-radius: 50px;
+      cursor: pointer;
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      transition: all var(--transition);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.25);
+      width: 100%;
+      margin: 6px 0;
+    }
+
+    .btn::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      left: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(0, 240, 255, 0.25) 0%, transparent 70%);
+      opacity: 0;
+      transition: opacity var(--transition);
+    }
+
+    .btn:hover {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 30px rgba(0, 240, 255, 0.6), 0 0 70px rgba(224, 64, 251, 0.3);
+      transform: translateY(-2px);
+      color: #fff;
+    }
+
+    .btn:hover::before {
+      opacity: 1;
+    }
+
+    .btn-magenta {
+      background: linear-gradient(135deg, rgba(224, 64, 251, 0.15), rgba(0, 240, 255, 0.1));
+      color: var(--neon-magenta);
+      box-shadow: 0 0 15px rgba(224, 64, 251, 0.3);
+    }
+
+    .btn-magenta:hover {
+      border-color: var(--neon-magenta);
+      box-shadow: 0 0 30px rgba(224, 64, 251, 0.7), 0 0 70px rgba(0, 240, 255, 0.3);
+    }
+
+    .btn-small {
+      padding: 8px 20px;
+      font-size: 0.8rem;
+      width: auto;
+      display: inline-block;
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      color: var(--text-secondary);
+      box-shadow: none;
+    }
+
+    .btn-outline:hover {
+      border-color: #fff;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+    }
+
+    /* Инпуты */
+    .input-field {
+      width: 100%;
+      background: rgba(10, 20, 40, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      border-radius: 50px;
+      padding: 14px 22px;
+      color: #fff;
+      font-family: 'Inter', sans-serif;
+      font-size: 1rem;
+      outline: none;
+      transition: all var(--transition);
+      margin: 8px 0;
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    .input-field:focus {
+      border-color: var(--neon-cyan);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.4);
+      background: rgba(0, 30, 60, 0.7);
+    }
+
+    .input-field::placeholder {
+      color: rgba(255, 255, 255, 0.35);
+      font-weight: 300;
+    }
+
+    /* Табы */
+    .tab-switch {
+      display: flex;
+      background: rgba(10, 20, 40, 0.6);
+      border-radius: 50px;
+      padding: 5px;
+      margin-bottom: 20px;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .tab-btn {
+      flex: 1;
+      background: transparent;
+      border: none;
+      color: var(--text-secondary);
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 600;
+      font-size: 0.9rem;
+      padding: 10px;
+      border-radius: 50px;
+      cursor: pointer;
+      transition: all var(--transition);
+      letter-spacing: 0.05em;
+    }
+
+    .tab-btn.active {
+      background: rgba(0, 240, 255, 0.2);
+      color: var(--neon-cyan);
+      box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+    }
+
+    /* Чат */
+    .chat-container {
+      display: flex;
+      flex-direction: column;
+      height: 480px;
+      border-radius: var(--radius-md);
+      background: rgba(5, 12, 30, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      overflow: hidden;
+    }
+
+    .chat-header {
+      padding: 16px 20px;
+      background: rgba(0, 240, 255, 0.08);
+      border-bottom: 1px solid rgba(0, 240, 255, 0.2);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .chat-header .bot-avatar {
+      width: 42px;
+      height: 42px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Orbitron', sans-serif;
+      font-weight: 900;
+      font-size: 1.2rem;
+      color: #000;
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.6);
+    }
+
+    .chat-messages {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-messages::-webkit-scrollbar {
+      width: 5px;
+    }
+    .chat-messages::-webkit-scrollbar-thumb {
+      background: rgba(0, 240, 255, 0.4);
+      border-radius: 10px;
+    }
+
+    .message-bubble {
+      max-width: 82%;
+      padding: 12px 18px;
+      border-radius: 22px;
+      word-break: break-word;
+      animation: msgIn 0.35s ease-out;
+      position: relative;
+      font-size: 0.95rem;
+      line-height: 1.4;
+    }
+
+    @keyframes msgIn {
+      from {
+        opacity: 0;
+        transform: scale(0.9) translateY(10px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .message-user {
+      align-self: flex-end;
+      background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 180, 200, 0.15));
+      border: 1px solid rgba(0, 240, 255, 0.35);
+      color: #fff;
+      border-bottom-right-radius: 6px;
+      box-shadow: 0 4px 20px rgba(0, 240, 255, 0.15);
+    }
+
+    .message-bot {
+      align-self: flex-start;
+      background: linear-gradient(135deg, rgba(224, 64, 251, 0.15), rgba(160, 40, 200, 0.1));
+      border: 1px solid rgba(224, 64, 251, 0.35);
+      color: #fff;
+      border-bottom-left-radius: 6px;
+      box-shadow: 0 4px 20px rgba(224, 64, 251, 0.15);
+    }
+
+    .message-pending {
+      align-self: flex-start;
+      background: rgba(255, 255, 255, 0.04);
+      border: 1px dashed rgba(255, 255, 255, 0.2);
+      color: var(--text-secondary);
+      font-style: italic;
+      font-size: 0.85rem;
+      border-radius: 18px;
+      padding: 8px 16px;
+    }
+
+    .chat-input-area {
+      display: flex;
+      gap: 8px;
+      padding: 12px 16px;
+      background: rgba(0, 0, 0, 0.4);
+      border-top: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .chat-input-area .input-field {
+      margin: 0;
+      flex: 1;
+      border-radius: 50px;
+    }
+
+    .send-btn {
+      background: linear-gradient(135deg, var(--neon-cyan), var(--neon-magenta));
+      border: none;
+      border-radius: 50%;
+      width: 48px;
+      height: 48px;
+      cursor: pointer;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #000;
+      font-weight: 700;
+      transition: all var(--transition);
+      box-shadow: 0 0 20px rgba(0, 240, 255, 0.5);
+    }
+
+    .send-btn:hover {
+      box-shadow: 0 0 35px rgba(0, 240, 255, 0.9), 0 0 60px rgba(224, 64, 251, 0.5);
+      transform: scale(1.05);
+    }
+
+    /* Админ-панель */
+    .admin-questions {
+      max-height: 450px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      padding-right: 6px;
+    }
+
+    .admin-questions::-webkit-scrollbar {
+      width: 5px;
+    }
+    .admin-questions::-webkit-scrollbar-thumb {
+      background: rgba(224, 64, 251, 0.4);
+      border-radius: 10px;
+    }
+
+    .question-card {
+      background: rgba(10, 20, 45, 0.6);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: var(--radius-md);
+      padding: 16px;
+      transition: all var(--transition);
+    }
+
+    .question-card:hover {
+      border-color: var(--neon-magenta);
+      box-shadow: 0 0 20px rgba(224, 64, 251, 0.2);
+    }
+
+    .question-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-secondary);
+      margin-bottom: 8px;
+      letter-spacing: 0.03em;
+    }
+
+    .question-text {
+      font-weight: 500;
+      margin-bottom: 12px;
+      color: #fff;
+      background: rgba(0, 0, 0, 0.3);
+      padding: 12px;
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--neon-cyan);
+    }
+
+    .admin-reply-row {
+      display: flex;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .admin-reply-row .input-field {
+      margin: 0;
+      flex: 1;
+      font-size: 0.9rem;
+      padding: 10px 16px;
+    }
+
+    .reply-badge {
+      background: rgba(57, 255, 20, 0.15);
+      color: var(--neon-green);
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+      border: 1px solid rgba(57, 255, 20, 0.35);
+    }
+
+    .section-divider {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+      margin: 20px 0;
+      position: relative;
+    }
+    .section-divider span {
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--bg-deep);
+      padding: 0 16px;
+      color: var(--text-secondary);
+      font-size: 0.8rem;
+      font-family: 'Orbitron', sans-serif;
+      letter-spacing: 0.06em;
+    }
+
+    .flex-between {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .mt-2 { margin-top: 16px; }
+    .mb-2 { margin-bottom: 16px; }
+    .text-center { text-align: center; }
+
+    /* Адаптивность */
+    @media (max-width: 480px) {
+      .screen {
+        padding: 20px 16px;
+        border-radius: 24px;
+      }
+      .title-xl {
+        font-size: 1.9rem;
+      }
+      .chat-container {
+        height: 380px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <!-- Фон с анимированными частицами -->
+  <canvas id="particles-canvas"></canvas>
+
+  <!-- Основной контейнер приложения -->
+  <div class="app-container">
+
+    <!-- СТАРТОВЫЙ ЭКРАН -->
+    <div id="start-screen" class="screen">
+      <h1 class="title-xl neon-text-cyan" style="margin-bottom:6px;">ShChat</h1>
+      <p class="subtitle">нейро-коммуникационная платформа</p>
+      <button class="btn" id="btn-goto-auth">🚀 Войти в ShChat</button>
+      <button class="btn btn-magenta" id="btn-goto-admin-login">🔐 коркарди штчат</button>
+      <p style="text-align:center;margin-top:16px;font-size:0.7rem;color:var(--text-secondary);">v2.4 · quantum bridge active</p>
+    </div>
+
+    <!-- ЭКРАН АВТОРИЗАЦИИ (ВХОД / РЕГИСТРАЦИЯ) -->
+    <div id="auth-screen" class="screen hidden">
+      <h2 class="title-lg neon-text-cyan mb-2">ShChat</h2>
+      <div class="tab-switch">
+        <button class="tab-btn active" id="tab-login">Вход</button>
+        <button class="tab-btn" id="tab-register">Регистрация</button>
+      </div>
+      <!-- Форма входа -->
+      <div id="form-login">
+        <input type="text" class="input-field" placeholder="Имя пользователя" id="login-username" autocomplete="off">
+        <input type="password" class="input-field" placeholder="Пароль" id="login-password">
+        <button class="btn mt-2" id="btn-login">Войти</button>
+      </div>
+      <!-- Форма регистрации -->
+      <div id="form-register" class="hidden">
+        <input type="text" class="input-field" placeholder="Придумайте имя" id="reg-username" autocomplete="off">
+        <input type="password" class="input-field" placeholder="Придумайте пароль" id="reg-password">
+        <button class="btn mt-2" id="btn-register">Зарегистрироваться</button>
+      </div>
+      <button class="btn btn-outline mt-2" id="btn-back-to-start">◂ На главную</button>
+      <p id="auth-error" style="color:#ff5e7a;text-align:center;margin-top:10px;font-size:0.85rem;display:none;"></p>
+    </div>
+
+    <!-- ЭКРАН ЧАТА ShChat -->
+    <div id="shchat-screen" class="screen hidden">
+      <div class="chat-container">
+        <div class="chat-header">
+          <div style="display:flex;align-items:center;gap:12px;">
+            <div class="bot-avatar">S</div>
+            <div>
+              <h3 style="font-size:1rem;color:var(--neon-cyan);margin:0;">ShChat AI</h3>
+              <span style="font-size:0.7rem;color:var(--text-secondary);" id="current-user-display">user</span>
+            </div>
+          </div>
+          <button class="btn btn-outline btn-small" id="btn-logout-shchat">Выйти</button>
+        </div>
+        <div class="chat-messages" id="chat-messages-container">
+          <!-- Сообщения генерируются динамически -->
+        </div>
+        <div class="chat-input-area">
+          <input type="text" class="input-field" placeholder="Задайте вопрос ShChat..." id="chat-input" autocomplete="off">
+          <button class="send-btn" id="btn-send-message">➤</button>
+        </div>
+      </div>
+      <p style="text-align:center;margin-top:8px;font-size:0.7rem;color:var(--text-secondary);">Ваши вопросы передаются в коркарди штчат</p>
+    </div>
+
+    <!-- ЭКРАН ВХОДА АДМИНА (коркарди штчат) -->
+    <div id="admin-login-screen" class="screen hidden">
+      <h2 class="title-lg neon-text-magenta mb-2">коркарди штчат</h2>
+      <p class="subtitle">доступ только для оператора</p>
+      <input type="password" class="input-field" placeholder="Введите пароль" id="admin-password-input">
+      <button class="btn btn-magenta mt-2" id="btn-admin-login">Войти в панель</button>
+      <button class="btn btn-outline mt-2" id="btn-back-admin-login">◂ На главную</button>
+      <p id="admin-login-error" style="color:#ff5e7a;text-align:center;margin-top:10px;font-size:0.85rem;display:none;"></p>
+    </div>
+
+    <!-- ПАНЕЛЬ АДМИНИСТРАТОРА -->
+    <div id="admin-panel-screen" class="screen hidden">
+      <div class="flex-between mb-2">
+        <h2 class="title-lg neon-text-magenta" style="margin:0;">коркарди штчат</h2>
+        <button class="btn btn-outline btn-small" id="btn-admin-logout">Выйти</button>
+      </div>
+      <p style="color:var(--text-secondary);font-size:0.8rem;margin-bottom:16px;">Вопросы от пользователей ShChat</p>
+      <div class="admin-questions" id="admin-questions-container">
+        <!-- Заполняется динамически -->
+      </div>
+      <p style="text-align:center;margin-top:12px;font-size:0.7rem;color:var(--text-secondary);">отвечайте на вопросы — они появятся у пользователей</p>
+    </div>
+
+  </div>
+
+  <script>
+    (function() {
+      // ==================== КОНСТАНТЫ И СОСТОЯНИЕ ====================
+      const ADMIN_PASSWORD = '192837465';
+      const STORAGE_KEYS = {
+        USERS: 'shchat_users',
+        MESSAGES: 'shchat_messages',
+        CURRENT_USER: 'shchat_current_user'
+      };
+
+      // DOM-элементы экранов
+      const screens = {
+        start: document.getElementById('start-screen'),
+        auth: document.getElementById('auth-screen'),
+        shchat: document.getElementById('shchat-screen'),
+        adminLogin: document.getElementById('admin-login-screen'),
+        adminPanel: document.getElementById('admin-panel-screen')
+      };
+
+      // Вспомогательная функция переключения экранов
+      function showScreen(screenId) {
+        Object.values(screens).forEach(s => s.classList.add('hidden'));
+        if (screens[screenId]) {
+          screens[screenId].classList.remove('hidden');
+        }
+      }
+
+      // ==================== РАБОТА С ДАННЫМИ ====================
+      function getUsers() {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS)) || [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function saveUsers(users) {
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+      }
+
+      function getMessages() {
+        try {
+          return JSON.parse(localStorage.getItem(STORAGE_KEYS.MESSAGES)) || [];
+        } catch (e) {
+          return [];
+        }
+      }
+
+      function saveMessages(messages) {
+        localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(messages));
+      }
+
+      function getCurrentUser() {
+        return localStorage.getItem(STORAGE_KEYS.CURRENT_USER) || null;
+      }
+
+      function setCurrentUser(username) {
+        if (username) {
+          localStorage.setItem(STORAGE_KEYS.CURRENT_USER, username);
+        } else {
+          localStorage.removeItem(STORAGE_KEYS.CURRENT_USER);
+        }
+      }
+
+      // Генерация уникального ID сообщения
+      function generateMsgId() {
+        return 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+      }
+
+      // Добавление нового вопроса от пользователя
+      function addUserMessage(username, text) {
+        const messages = getMessages();
+        const newMsg = {
+          id: generateMsgId(),
+          username: username,
+          text: text,
+          timestamp: new Date().toISOString(),
+          reply: null,
+          replyTimestamp: null
+        };
+        messages.push(newMsg);
+        saveMessages(messages);
+        return newMsg;
+      }
+
+      // Добавление ответа админа на сообщение
+      function addAdminReply(messageId, replyText) {
+        const messages = getMessages();
+        const msgIndex = messages.findIndex(m => m.id === messageId);
+        if (msgIndex !== -1 && messages[msgIndex].reply === null) {
+          messages[msgIndex].reply = replyText;
+          messages[msgIndex].replyTimestamp = new Date().toISOString();
+          saveMessages(messages);
+          return true;
+        }
+        return false;
+      }
+
+      // Получить сообщения конкретного пользователя (для чата)
+      function getUserMessages(username) {
+        return getMessages().filter(m => m.username === username);
+      }
+
+      // Получить все неотвеченные сообщения (для админ-панели)
+      function getUnrepliedMessages() {
+        return getMessages().filter(m => m.reply === null).sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+      }
+
+      // Получить все отвеченные сообщения
+      function getRepliedMessages() {
+        return getMessages().filter(m => m.reply !== null).sort((a, b) => new Date(b.replyTimestamp) - new Date(a.replyTimestamp));
+      }
+
+      // ==================== РЕНДЕРИНГ ЧАТА ====================
+      function renderChatMessages() {
+        const container = document.getElementById('chat-messages-container');
+        if (!container) return;
+        const currentUser = getCurrentUser();
+        if (!currentUser) {
+          showScreen('start');
+          return;
+        }
+
+        const userMessages = getUserMessages(currentUser);
+        container.innerHTML = '';
+
+        if (userMessages.length === 0) {
+          container.innerHTML = `
+            <div style="text-align:center;color:var(--text-secondary);padding:40px 20px;">
+              <p style="font-size:2rem;margin-bottom:10px;">💬</p>
+              <p>Задайте первый вопрос ShChat боту.</p>
+              <p style="font-size:0.75rem;">Ответ придёт из коркарди штчат.</p>
+            </div>`;
+          return;
+        }
+
+        // Отображаем диалог: вопрос пользователя -> ответ (если есть) -> и т.д.
+        userMessages.forEach(msg => {
+          // Вопрос пользователя
+          const userBubble = document.createElement('div');
+          userBubble.className = 'message-bubble message-user';
+          userBubble.innerHTML = `
+            <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-bottom:4px;">Вы · ${formatTime(msg.timestamp)}</div>
+            <div>${escapeHtml(msg.text)}</div>`;
+          container.appendChild(userBubble);
+
+          // Ответ или ожидание
+          if (msg.reply !== null) {
+            const botBubble = document.createElement('div');
+            botBubble.className = 'message-bubble message-bot';
+            botBubble.innerHTML = `
+              <div style="font-size:0.7rem;color:rgba(255,255,255,0.5);margin-bottom:4px;">ShChat · ${formatTime(msg.replyTimestamp)}</div>
+              <div>${escapeHtml(msg.reply)}</div>`;
+            container.appendChild(botBubble);
+          } else {
+            const pendingBubble = document.createElement('div');
+            pendingBubble.className = 'message-pending';
+            pendingBubble.textContent = '⏳ Ожидает ответа от оператора...';
+            container.appendChild(pendingBubble);
+          }
+        });
+
+        // Прокрутка вниз
+        container.scrollTop = container.scrollHeight;
+      }
+
+      function formatTime(isoString) {
+        if (!isoString) return '';
+        const date = new Date(isoString);
+        return date.toLocaleTimeString('ru-RU', { hour: '2-digit', minute: '2-digit' });
+      }
+
+      function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+      }
+
+      // ==================== РЕНДЕРИНГ АДМИН-ПАНЕЛИ ====================
+      function renderAdminPanel() {
+        const container = document.getElementById('admin-questions-container');
+        if (!container) return;
+
+        const unreplied = getUnrepliedMessages();
+        const replied = getRepliedMessages();
+
+        let html = '';
+
+        if (unreplied.length === 0 && replied.length === 0) {
+          html = `<p style="text-align:center;color:var(--text-secondary);padding:30px;">Нет вопросов от пользователей.</p>`;
+        }
+
+        // Неотвеченные
+        if (unreplied.length > 0) {
+          html += `<div style="margin-bottom:16px;"><span class="reply-badge" style="background:rgba(255,80,80,0.2);border-color:rgba(255,80,80,0.5);color:#ff8080;">⚠ Новые вопросы (${unreplied.length})</span></div>`;
+          unreplied.forEach(msg => {
+            html += `
+              <div class="question-card" data-msgid="${msg.id}">
+                <div class="question-meta">
+                  <span>👤 <strong>${escapeHtml(msg.username)}</strong></span>
+                  <span>${formatTime(msg.timestamp)}</span>
+                </div>
+                <div class="question-text">${escapeHtml(msg.text)}</div>
+                <div class="admin-reply-row">
+                  <input type="text" class="input-field admin-reply-input" placeholder="Ваш ответ..." autocomplete="off">
+                  <button class="btn btn-magenta btn-small btn-send-reply" data-msgid="${msg.id}">Ответить</button>
+                </div>
+              </div>`;
+          });
+        }
+
+        // Отвеченные
+        if (replied.length > 0) {
+          html += `<div class="section-divider"><span>ОТВЕЧЕНО</span></div>`;
+          replied.forEach(msg => {
+            html += `
+              <div class="question-card" style="opacity:0.7;border-left:3px solid var(--neon-green);">
+                <div class="question-meta">
+                  <span>👤 <strong>${escapeHtml(msg.username)}</strong></span>
+                  <span>${formatTime(msg.timestamp)}</span>
+                </div>
+                <div class="question-text" style="border-left-color:var(--neon-green);">${escapeHtml(msg.text)}</div>
+                <div style="background:rgba(57,255,20,0.08);padding:10px;border-radius:12px;margin-top:6px;">
+                  <span style="font-size:0.7rem;color:var(--neon-green);">✓ Ответ (${formatTime(msg.replyTimestamp)}):</span>
+                  <p style="margin:4px 0 0;color:#fff;">${escapeHtml(msg.reply)}</p>
+                </div>
+              </div>`;
+          });
+        }
+
+        container.innerHTML = html;
+
+        // Навешиваем обработчики на кнопки "Ответить"
+        container.querySelectorAll('.btn-send-reply').forEach(btn => {
+          btn.addEventListener('click', function() {
+            const msgId = this.getAttribute('data-msgid');
+            const card = this.closest('.question-card');
+            const input = card.querySelector('.admin-reply-input');
+            const replyText = input.value.trim();
+            if (!replyText) {
+              input.style.borderColor = '#ff5e7a';
+              input.style.boxShadow = '0 0 15px rgba(255,80,80,0.5)';
+              setTimeout(() => {
+                input.style.borderColor = 'rgba(255,255,255,0.2)';
+                input.style.boxShadow = '';
+              }, 800);
+              return;
+            }
+            const success = addAdminReply(msgId, replyText);
+            if (success) {
+              renderAdminPanel();
+              // Если чат открыт в другой вкладке — пользователь увидит ответ при обновлении
+            } else {
+              alert('Ошибка: сообщение уже имеет ответ или не найдено.');
+            }
+          });
+        });
+
+        // Обработка Enter в полях ответа
+        container.querySelectorAll('.admin-reply-input').forEach(input => {
+          input.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+              const card = this.closest('.question-card');
+              const btn = card.querySelector('.btn-send-reply');
+              if (btn) btn.click();
+            }
+          });
+        });
+      }
+
+      // ==================== АВТООБНОВЛЕНИЕ ЧАТА ====================
+      let chatRefreshInterval = null;
+
+      function startChatAutoRefresh() {
+        stopChatAutoRefresh();
+        chatRefreshInterval = setInterval(() => {
+          const currentUser = getCurrentUser();
+          if (currentUser && !screens.shchat.classList.contains('hidden')) {
+            renderChatMessages();
+          }
+        }, 3000); // проверка каждые 3 секунды
+      }
+
+      function stopChatAutoRefresh() {
+        if (chatRefreshInterval) {
+          clearInterval(chatRefreshInterval);
+          chatRefreshInterval = null;
+        }
+      }
+
+      // ==================== ОБРАБОТЧИКИ СОБЫТИЙ ====================
+      // --- Стартовый экран ---
+      document.getElementById('btn-goto-auth').addEventListener('click', () => {
+        showScreen('auth');
+        document.getElementById('auth-error').style.display = 'none';
+      });
+
+      document.getElementById('btn-goto-admin-login').addEventListener('click', () => {
+        showScreen('adminLogin');
+        document.getElementById('admin-login-error').style.display = 'none';
+        document.getElementById('admin-password-input').value = '';
+      });
+
+      // --- Экран авторизации ---
+      const tabLogin = document.getElementById('tab-login');
+      const tabRegister = document.getElementById('tab-register');
+      const formLogin = document.getElementById('form-login');
+      const formRegister = document.getElementById('form-register');
+      const authError = document.getElementById('auth-error');
+
+      tabLogin.addEventListener('click', () => {
+        tabLogin.classList.add('active');
+        tabRegister.classList.remove('active');
+        formLogin.classList.remove('hidden');
+        formRegister.classList.add('hidden');
+        authError.style.display = 'none';
+      });
+
+      tabRegister.addEventListener('click', () => {
+        tabRegister.classList.add('active');
+        tabLogin.classList.remove('active');
+        formRegister.classList.remove('hidden');
+        formLogin.classList.add('hidden');
+        authError.style.display = 'none';
+      });
+
+      // Вход
+      document.getElementById('btn-login').addEventListener('click', () => {
+        const username = document.getElementById('login-username').value.trim();
+        const password = document.getElementById('login-password').value;
+        if (!username || !password) {
+          authError.textContent = 'Заполните все поля.';
+          authError.style.display = 'block';
+          return;
+        }
+        const users = getUsers();
+        const user = users.find(u => u.username === username && u.password === password);
+        if (!user) {
+          authError.textContent = 'Неверное имя пользователя или пароль.';
+          authError.style.display = 'block';
+          return;
+        }
+        // Успешный вход
+        setCurrentUser(username);
+        document.getElementById('current-user-display').textContent = username;
+        document.getElementById('login-username').value = '';
+        document.getElementById('login-password').value = '';
+        authError.style.display = 'none';
+        showScreen('shchat');
+        renderChatMessages();
+        startChatAutoRefresh();
+      });
+
+      // Регистрация
+      document.getElementById('btn-register').addEventListener('click', () => {
+        const username = document.getElementById('reg-username').value.trim();
+        const password = document.getElementById('reg-password').value;
+        if (!username || !password) {
+          authError.textContent = 'Заполните все поля.';
+          authError.style.display = 'block';
+          return;
+        }
+        if (username.length < 2) {
+          authError.textContent = 'Имя должно содержать минимум 2 символа.';
+          authError.style.display = 'block';
+          return;
+        }
+        if (password.length < 3) {
+          authError.textContent = 'Пароль должен содержать минимум 3 символа.';
+          authError.style.display = 'block';
+          return;
+        }
+        const users = getUsers();
+        if (users.find(u => u.username === username)) {
+          authError.textContent = 'Пользователь с таким именем уже существует.';
+          authError.style.display = 'block';
+          return;
+        }
+        // Регистрируем
+        users.push({ username, password });
+        saveUsers(users);
+        // Автоматический вход
+        setCurrentUser(username);
+        document.getElementById('current-user-display').textContent = username;
+        document.getElementById('reg-username').value = '';
+        document.getElementById('reg-password').value = '';
+        authError.style.display = 'none';
+        showScreen('shchat');
+        renderChatMessages();
+        startChatAutoRefresh();
+      });
+
+      // Кнопка "На главную" из авторизации
+      document.getElementById('btn-back-to-start').addEventListener('click', () => {
+        showScreen('start');
+        stopChatAutoRefresh();
+      });
+
+      // --- Экран чата ShChat ---
+      document.getElementById('btn-send-message').addEventListener('click', () => {
+        const input = document.getElementById('chat-input');
+        const text = input.value.trim();
+        const currentUser = getCurrentUser();
+        if (!text || !currentUser) return;
+        addUserMessage(currentUser, text);
+        input.value = '';
+        renderChatMessages();
+      });
+
+      document.getElementById('chat-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          document.getElementById('btn-send-message').click();
+        }
+      });
+
+      document.getElementById('btn-logout-shchat').addEventListener('click', () => {
+        setCurrentUser(null);
+        stopChatAutoRefresh();
+        showScreen('start');
+        document.getElementById('chat-input').value = '';
+      });
+
+      // --- Экран входа админа ---
+      document.getElementById('btn-admin-login').addEventListener('click', () => {
+        const passwordInput = document.getElementById('admin-password-input');
+        const errorEl = document.getElementById('admin-login-error');
+        if (passwordInput.value === ADMIN_PASSWORD) {
+          errorEl.style.display = 'none';
+          passwordInput.value = '';
+          showScreen('adminPanel');
+          renderAdminPanel();
+        } else {
+          errorEl.textContent = 'Неверный пароль. Доступ запрещён.';
+          errorEl.style.display = 'block';
+          passwordInput.value = '';
+        }
+      });
+
+      document.getElementById('admin-password-input').addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+          document.getElementById('btn-admin-login').click();
+        }
+      });
+
+      document.getElementById('btn-back-admin-login').addEventListener('click', () => {
+        showScreen('start');
+        document.getElementById('admin-password-input').value = '';
+        document.getElementById('admin-login-error').style.display = 'none';
+      });
+
+      // --- Панель админа ---
+      document.getElementById('btn-admin-logout').addEventListener('click', () => {
+        showScreen('start');
+      });
+
+      // Периодическое обновление админ-панели (если открыта)
+      let adminRefreshInterval = null;
+      function startAdminAutoRefresh() {
+        stopAdminAutoRefresh();
+        adminRefreshInterval = setInterval(() => {
+          if (!screens.adminPanel.classList.contains('hidden')) {
+            renderAdminPanel();
+          }
+        }, 4000);
+      }
+      function stopAdminAutoRefresh() {
+        if (adminRefreshInterval) {
+          clearInterval(adminRefreshInterval);
+          adminRefreshInterval = null;
+        }
+      }
+
+      // Переопределяем showScreen для управления интервалами
+      const originalShowScreen = showScreen;
+      showScreen = function(screenId) {
+        stopChatAutoRefresh();
+        stopAdminAutoRefresh();
+        originalShowScreen(screenId);
+        if (screenId === 'shchat') {
+          const currentUser = getCurrentUser();
+          if (currentUser) {
+            document.getElementById('current-user-display').textContent = currentUser;
+            renderChatMessages();
+            startChatAutoRefresh();
+          } else {
+            // Если нет текущего пользователя — возвращаем на старт
+            originalShowScreen('start');
+          }
+        }
+        if (screenId === 'adminPanel') {
+          renderAdminPanel();
+          startAdminAutoRefresh();
+        }
+      };
+
+      // ==================== ФОН С ЧАСТИЦАМИ (Canvas) ====================
+      function initParticles() {
+        const canvas = document.getElementById('particles-canvas');
+        const ctx = canvas.getContext('2d');
+        let width, height;
+        let particles = [];
+        const PARTICLE_COUNT = 80;
+        const CONNECTION_DIST = 120;
+
+        function resize() {
+          width = window.innerWidth;
+          height = window.innerHeight;
+          canvas.width = width;
+          canvas.height = height;
+        }
+
+        class Particle {
+          constructor() {
+            this.reset();
+          }
+          reset() {
+            this.x = Math.random() * width;
+            this.y = Math.random() * height;
+            this.vx = (Math.random() - 0.5) * 0.4;
+            this.vy = (Math.random() - 0.5) * 0.4;
+            this.radius = Math.random() * 1.8 + 0.6;
+            this.opacity = Math.random() * 0.6 + 0.3;
+            this.hue = Math.random() > 0.6 ? 190 : 280; // cyan или magenta оттенок
+          }
+          update() {
+            this.x += this.vx;
+            this.y += this.vy;
+            if (this.x < -20) this.x = width + 20;
+            if (this.x > width + 20) this.x = -20;
+            if (this.y < -20) this.y = height + 20;
+            if (this.y > height + 20) this.y = -20;
+          }
+          draw(ctx) {
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+            const color = this.hue === 190
+              ? `rgba(0, 240, 255, ${this.opacity})`
+              : `rgba(224, 64, 251, ${this.opacity})`;
+            ctx.fillStyle = color;
+            ctx.fill();
+            // свечение
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.radius * 2.5, 0, Math.PI * 2);
+            const glowColor = this.hue === 190
+              ? `rgba(0, 240, 255, ${this.opacity * 0.25})`
+              : `rgba(224, 64, 251, ${this.opacity * 0.25})`;
+            ctx.fillStyle = glowColor;
+            ctx.fill();
+          }
+        }
+
+        function createParticles() {
+          particles = [];
+          for (let i = 0; i < PARTICLE_COUNT; i++) {
+            particles.push(new Particle());
+          }
+        }
+
+        function drawConnections() {
+          for (let i = 0; i < particles.length; i++) {
+            for (let j = i + 1; j < particles.length; j++) {
+              const dx = particles[i].x - particles[j].x;
+              const dy = particles[i].y - particles[j].y;
+              const dist = Math.sqrt(dx * dx + dy * dy);
+              if (dist < CONNECTION_DIST) {
+                const alpha = (1 - dist / CONNECTION_DIST) * 0.25;
+                ctx.beginPath();
+                ctx.moveTo(particles[i].x, particles[i].y);
+                ctx.lineTo(particles[j].x, particles[j].y);
+                ctx.strokeStyle = `rgba(150, 200, 255, ${alpha})`;
+                ctx.lineWidth = 0.5;
+                ctx.stroke();
+              }
+            }
+          }
+        }
+
+        function animate() {
+          ctx.clearRect(0, 0, width, height);
+          // Рисуем лёгкую фоновую сетку
+          ctx.strokeStyle = 'rgba(255, 255, 255, 0.015)';
+          ctx.lineWidth = 0.3;
+          const gridSize = 70;
+          for (let x = 0; x < width; x += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(x, 0);
+            ctx.lineTo(x, height);
+            ctx.stroke();
+          }
+          for (let y = 0; y < height; y += gridSize) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(width, y);
+            ctx.stroke();
+          }
+
+          particles.forEach(p => {
+            p.update();
+            p.draw(ctx);
+          });
+          drawConnections();
+          requestAnimationFrame(animate);
+        }
+
+        resize();
+        createParticles();
+        animate();
+        window.addEventListener('resize', () => {
+          resize();
+          createParticles();
+        });
+      }
+
+      // ==================== ЗАПУСК ====================
+      function init() {
+        initParticles();
+        // Проверяем, есть ли активная сессия пользователя
+        const savedUser = getCurrentUser();
+        if (savedUser) {
+          // Проверяем, существует ли такой пользователь
+          const users = getUsers();
+          if (users.find(u => u.username === savedUser)) {
+            document.getElementById('current-user-display').textContent = savedUser;
+            showScreen('shchat');
+            renderChatMessages();
+            startChatAutoRefresh();
+            return;
+          } else {
+            setCurrentUser(null);
+          }
+        }
+        showScreen('start');
+      }
+
+      init();
+    })();
+  </script>
+</body>
+</html>
